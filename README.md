@@ -1,6 +1,6 @@
-# KCC Voice Recommendation System
+# KCC Voice Recommendation System (Agents Interface)
 
-A containerized multi-service voice recommendation system with Docker Compose.
+A containerized multi-service voice recommendation system with Docker Compose, now available as an agents interface.
 
 ## Architecture
 
@@ -285,9 +285,8 @@ For production deployment:
 
 ## License
 
-[Your License Here]
+MIT License
 
 ## Support
 
 For issues and questions, please contact the development team.
-

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Recommendation System</title>
+    <link rel="stylesheet" href="styles.css?v=4">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="config.js?v=3"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="title">
+                    <i class="fas fa-seedling"></i>
+                    Agent’s Interface
+                </h1>
+                <p class="subtitle">🌾 Speak your farming questions for instant agricultural guidance and recommendations 🌱</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Audio Input Section -->
+            <section class="audio-input-section">
+                <div class="input-tabs">
+                    <!-- <button class="tab-button active" data-tab="upload">
+                        <i class="fas fa-upload"></i>
+                        Upload Audio
+                    </button>
+                    <button class="tab-button" data-tab="record">
+                        <i class="fas fa-microphone"></i>
+                        Record Audio
+                    </button> -->
+                    <button class="tab-button active" data-tab="live">
+                        <i class="fas fa-tractor"></i>
+                        Live Processing
+                    </button>
+                </div>
+
+                <!-- Upload Tab -->
+                <!-- <div class="tab-content active" id="upload-tab">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-content">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            <h3>Drop your audio file here</h3>
+                            <p>or click to browse</p>
+                            <input type="file" id="audioFileInput" accept="audio/*" hidden>
+                            <button class="browse-button" onclick="document.getElementById('audioFileInput').click()">
+                                Browse Files
+                            </button>
+                            <div class="supported-formats">
+                                <small>Supported: MP3, WAV, FLAC, OGG, M4A, AAC, MP4, WMA, AMR</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="file-info" id="fileInfo" style="display: none;">
+                        <div class="file-details">
+                            <i class="fas fa-file-audio"></i>
+                            <div class="file-text">
+                                <span class="file-name" id="fileName"></span>
+                                <span class="file-size" id="fileSize"></span>
+                            </div>
+                            <button class="remove-file" onclick="removeFile()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div> -->
+
+                <!-- Record Tab -->
+                <!-- <div class="tab-content" id="record-tab">
+                    <div class="recording-area">
+                        <div class="recording-controls">
+                            <button class="record-button" id="recordButton">
+                                <i class="fas fa-microphone"></i>
+                                Start Recording
+                            </button>
+                            <div class="recording-status" id="recordingStatus" style="display: none;">
+                                <div class="recording-indicator">
+                                    <div class="pulse"></div>
+                                    <span>Recording...</span>
+                                </div>
+                                <div class="recording-timer" id="recordingTimer">00:00</div>
+                            </div>
+                        </div>
+                        <div class="recording-actions" id="recordingActions" style="display: none;">
+                            <button class="stop-button" id="stopButton">
+                                <i class="fas fa-stop"></i>
+                                Stop Recording
+                            </button>
+                            <button class="play-button" id="playButton">
+                                <i class="fas fa-play"></i>
+                                Play
+                            </button>
+                        </div>
+                        <audio id="recordedAudio" controls style="display: none;"></audio>
+                    </div>
+                </div> -->
+
+                <!-- Live Processing Tab -->
+                <div class="tab-content active" id="live-tab">
+                    <div class="live-processing-area">
+                        <div class="live-controls">
+                            <button class="live-start-button" id="liveStartButton">
+                                <i class="fas fa-leaf"></i>
+                                Start Live Processing
+                            </button>
+                            <div class="live-status" id="liveStatus" style="display: none;">
+                                <div class="live-indicator">
+                                    <div class="pulse"></div>
+                                    <span>Processing Live Audio...</span>
+                                </div>
+                                <div class="live-timer" id="liveTimer">00:00</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Live Questions Display -->
+                        <div class="live-questions-container" id="liveQuestionsContainer" style="display: none;">
+                            <h3>
+                                <i class="fas fa-question-circle"></i>
+                                Questions & Answers
+                            </h3>
+                            <div class="live-questions-list" id="liveQuestionsList">
+                                <!-- Live questions will be displayed here -->
+                            </div>
+                        </div>
+                        
+                        <!-- Connection Status -->
+                        <div class="connection-status" id="connectionStatus" style="display: none;">
+                            <div class="status-indicator">
+                                <i class="fas fa-satellite-dish"></i>
+                                <span id="connectionText">Connected</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Process Button -->
+                <!-- <div class="process-section">
+                    <button class="process-button" id="processButton" disabled>
+                        <i class="fas fa-cogs"></i>
+                        Process Audio
+                    </button>
+                </div> -->
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section" id="resultsSection" style="display: none;">
+                <div class="results-header">
+                    <h2>
+                        <i class="fas fa-seedling"></i>
+                        Analysis Results
+                    </h2>
+                    <button class="clear-results" onclick="clearResults()">
+                        <i class="fas fa-trash"></i>
+                        Clear Results
+                    </button>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-state" id="loadingState">
+                    <div class="spinner"></div>
+                    <p>Processing your audio... This may take a few moments.</p>
+                </div>
+
+                <!-- Results Content -->
+                <div class="results-content" id="resultsContent" style="display: none;">
+                    <!-- Question and Answer Only -->
+                    <div class="result-card">
+                        <div class="card-header">
+                            <h3>
+                                <i class="fas fa-question-circle"></i>
+                                Question
+                            </h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="question-text" id="questionText"></div>
+                        </div>
+                    </div>
+
+                    <!-- Search Results -->
+                    <div class="result-card">
+                        <div class="card-header">
+                            <h3>
+                                <i class="fas fa-lightbulb"></i>
+                                Answer
+                            </h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="search-results" id="searchResults">
+                                <!-- Search results will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>🌾 Agent’s Interface - Your Digital Agricultural Assistant. Powered by AI 🌱</p>
+        </footer>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="script.js?v=3"></script>
+</body>
+</html>

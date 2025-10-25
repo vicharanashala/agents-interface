@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KCC's Friend - System Status</title>
+    <script src="config.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .status-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 20px;
+            margin: 10px 0;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .status-good { border-left: 4px solid #2ed573; }
+        .status-bad { border-left: 4px solid #ff4757; }
+        .status-warning { border-left: 4px solid #ffa502; }
+        .url { 
+            font-family: monospace; 
+            background: rgba(0, 0, 0, 0.2); 
+            padding: 5px 10px; 
+            border-radius: 5px; 
+            word-break: break-all;
+        }
+        .test-button {
+            background: #2ed573;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .test-button:hover { background: #26d065; }
+        .test-button:disabled { background: #666; cursor: not-allowed; }
+        h1 { text-align: center; margin-bottom: 30px; }
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 KCC's Friend - System Status</h1>
+        
+        <div id="frontend-status" class="status-item">
+            <div>
+                <strong>Frontend URL:</strong><br>
+                <span class="url" id="frontend-url">Loading...</span>
+            </div>
+            <span id="frontend-indicator">✅</span>
+        </div>
+        
+        <div id="backend-status" class="status-item">
+            <div>
+                <strong>Backend API URL:</strong><br>
+                <span class="url" id="backend-url">Loading...</span>
+            </div>
+            <div>
+                <button class="test-button" onclick="testBackend()">Test API</button>
+                <span id="backend-indicator">⏳</span>
+            </div>
+        </div>
+        
+        <div id="health-status" class="status-item">
+            <div>
+                <strong>API Health:</strong><br>
+                <span id="health-details">Testing...</span>
+            </div>
+            <span id="health-indicator">⏳</span>
+        </div>
+        
+        <div class="instructions">
+            <h3>🚀 Quick Setup Guide</h3>
+            <ol>
+                <li><strong>Backend:</strong> Make sure your backend is running on <code>localhost:5000</code></li>
+                <li><strong>Ngrok Backend:</strong> Run <code>ngrok http 5000</code> in a terminal</li>
+                <li><strong>Update Config:</strong> Copy the ngrok HTTPS URL and update <code>config.js</code></li>
+                <li><strong>Test:</strong> Use the "Test API" button above to verify connectivity</li>
+                <li><strong>Use App:</strong> Go to <a href="index.html" style="color: #ffd700;">KCC's Friend App</a></li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Initialize status page
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus();
+            testBackend();
+        });
+
+        function updateStatus() {
+            // Frontend URL
+            document.getElementById('frontend-url').textContent = window.location.origin;
+            
+            // Backend URL
+            const backendUrl = CONFIG.API.BASE_URL;
+            document.getElementById('backend-url').textContent = backendUrl;
+            
+            // Check if using ngrok
+            const isNgrok = window.location.hostname.includes('ngrok');
+            const backendIsNgrok = backendUrl.includes('ngrok');
+            
+            if (isNgrok && backendIsNgrok) {
+                document.getElementById('backend-status').className = 'status-item status-good';
+            } else if (isNgrok && !backendIsNgrok) {
+                document.getElementById('backend-status').className = 'status-item status-warning';
+            } else {
+                document.getElementById('backend-status').className = 'status-item status-good';
+            }
+        }
+
+        async function testBackend() {
+            const button = document.querySelector('.test-button');
+            const indicator = document.getElementById('backend-indicator');
+            const healthIndicator = document.getElementById('health-indicator');
+            const healthDetails = document.getElementById('health-details');
+            const healthStatus = document.getElementById('health-status');
+            
+            button.disabled = true;
+            button.textContent = 'Testing...';
+            indicator.textContent = '⏳';
+            healthIndicator.textContent = '⏳';
+            healthDetails.textContent = 'Testing API connection...';
+            
+            try {
+                const response = await fetch(`${CONFIG.API.BASE_URL}/health`);
+                const data = await response.json();
+                
+                if (response.ok && data.status === 'healthy') {
+                    indicator.textContent = '✅';
+                    healthIndicator.textContent = '✅';
+                    healthStatus.className = 'status-item status-good';
+                    healthDetails.innerHTML = `
+                        <strong>Status:</strong> ${data.status}<br>
+                        <strong>Audio Service:</strong> ${data.audio_service_loaded ? '✅' : '❌'}<br>
+                        <strong>Search Service:</strong> ${data.search_service_loaded ? '✅' : '❌'}<br>
+                        <strong>Dataset:</strong> ${data.dataset_info?.total_pairs || 0} Q&A pairs
+                    `;
+                    button.textContent = 'API Working ✅';
+                } else {
+                    throw new Error(`API returned: ${data.status || 'unknown error'}`);
+                }
+                
+            } catch (error) {
+                console.error('Backend test failed:', error);
+                indicator.textContent = '❌';
+                healthIndicator.textContent = '❌';
+                healthStatus.className = 'status-item status-bad';
+                healthDetails.innerHTML = `
+                    <strong>Error:</strong> ${error.message}<br>
+                    <small>Make sure backend is running and ngrok is configured correctly</small>
+                `;
+                button.textContent = 'Test Failed ❌';
+            }
+            
+            button.disabled = false;
+        }
+    </script>
+</body>
+</html>

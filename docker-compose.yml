@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  voice_recommendation_system:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kcc_voice_system
+    ports:
+      - "5020:5020"    # Backend API
+      - "8020:8020"    # Transcription API
+      - "82:80"        # Frontend (nginx)
+    volumes:
+      # Mount backend uploads directory
+      - ./backend/uploads:/app/backend/uploads
+      # Mount backend logs
+      - ./backend/logs:/app/backend/logs
+      # Mount backend_transcription uploads
+      - ./backend_transcription/uploads:/app/backend_transcription/uploads
+      # Mount embedding data (Q&A dataset and FAISS index)
+      - ./embedding_data:/app/embedding_data
+      # Mount frontend for easy development updates
+      - ./frontend:/app/frontend:ro
+      # Supervisor logs
+      - ./logs/supervisor:/var/log/supervisor
+    environment:
+      - PYTHONUNBUFFERED=1
+      - HF_TOKEN=${HF_TOKEN:-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}
+      - TRANSCRIPTION_API_URL=http://localhost:8020
+      - TRANSLATION_API_BASE_URL=${TRANSLATION_API_BASE_URL:-https://hyperlogical-soppiest-krystin.ngrok-free.dev/api/translation/}
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  default:
+    name: kcc_voice_network
+

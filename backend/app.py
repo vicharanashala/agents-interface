@@ -710,14 +710,15 @@ async def process_audio_complete(audio: UploadFile = File(...)):
     timing_info = {}
     
     try:
-        # Print device info
-        print(torch.cuda.is_available())
-        print(torch.cuda.get_device_name(0))
-        print(torch.cuda.get_device_properties(0))
-        print(torch.cuda.get_device_capability(0))
-        print(torch.cuda.get_device_properties(0))
-        print(torch.cuda.get_device_properties(0))
-       
+        if torch.cuda.is_available():
+            try:
+                device_name = torch.cuda.get_device_name(0)
+                logger.info(f"Using GPU: {device_name}")
+            except Exception as e:
+                logger.warning(f"Error retrieving CUDA device name: {e}")
+        else:
+            logger.info("CUDA not available, using CPU")
+           
         if not search_service:
             raise HTTPException(status_code=500, detail="Search service not initialized")
         
